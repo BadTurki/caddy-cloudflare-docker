@@ -19,9 +19,9 @@ services:
     container_name: caddy
     restart: unless-stopped
     ports:
-      - 80:80
-      - 443:443
-      - 443:443/udp
+      - ${CADDY_HTTP_PORT:-80}:80
+      - ${CADDY_HTTPS_PORT:-443}:443
+      - ${CADDY_HTTPS_PORT:-443}:443/udp
     volumes:
       - ${CADDY_DATA_DIR}/caddy:/etc/caddy
       - ${CADDY_DATA_DIR}/config:/config
@@ -39,6 +39,8 @@ Create a `.env` file in the same directory as your `docker-compose.yml`:
   - Place your `Caddyfile` in `${CADDY_DATA_DIR}/caddy/Caddyfile`
   - Certificates and cache stored in `${CADDY_DATA_DIR}/data`
   - Additional config in `${CADDY_DATA_DIR}/config`
+- `CADDY_HTTP_PORT`: (Optional) HTTP port to expose on host. Defaults to 80 if not set.
+- `CADDY_HTTPS_PORT`: (Optional) HTTPS port to expose on host. Defaults to 443 if not set.
 - `TZ`: (Optional) Set timezone for container logs and timestamps. Defaults to UTC if not set.
 - `CLOUDFLARE_API_TOKEN`: (Required only for Cloudflare DNS challenges) Your Cloudflare API token with DNS edit permissions. Only needed if using `dns cloudflare` in your Caddyfile.
 
