@@ -44,16 +44,15 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
-      - name: Build Docker image
+      - name: Build Docker image for version detection
         uses: docker/build-push-action@v5
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           push: false
           load: true
           tags: ${{ env.IMAGE_NAME }}:temp
           cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: Detect Caddy version
         id: caddy_version
@@ -73,6 +72,9 @@ jobs:
           # Extract major (e.g., 2.10.2 -> 2)
           VERSION_MAJOR=$(echo $VERSION_CLEAN | cut -d. -f1)
           echo "version_major=$VERSION_MAJOR" >> $GITHUB_OUTPUT
+      
+      - name: Clean up temp image
+        run: docker rmi ${{ env.IMAGE_NAME }}:temp
 
       - name: Generate Docker tags
         id: tags
