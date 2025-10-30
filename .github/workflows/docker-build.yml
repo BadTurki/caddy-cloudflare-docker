@@ -44,33 +44,65 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v5
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
         with:
-          images: ${{ env.IMAGE_NAME }}
-          tags: |
-            # Tag as 'latest' on main branch
-            type=raw,value=latest,enable={{is_default_branch}}
-            # Tag with git tag (e.g., v1.0.0 -> 1.0.0)
-            type=semver,pattern={{version}}
-            # Tag with git tag (e.g., v1.0.0 -> 1.0)
-            type=semver,pattern={{major}}.{{minor}}
-            # Tag with branch name
-            type=ref,event=branch
-            # Tag with PR number
-            type=ref,event=pr
-            # Tag with date for scheduled builds
-            type=schedule,pattern={{date 'YYYYMMDD'}}
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: false
+          load: true
+          tags: ${{ env.IMAGE_NAME }}:temp
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: Build and push Docker image
+      - name: Detect Caddy version
+        id: caddy_version
+        run: |
+          VERSION=$(docker run --rm ${{ env.IMAGE_NAME }}:temp caddy version | head -n1 | awk '{print $1}')
+          echo "Full version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+          # Extract major.minor.patch (e.g., v2.10.2 -> 2.10.2)
+          VERSION_CLEAN=$(echo $VERSION | sed 's/^v//')
+          echo "version_clean=$VERSION_CLEAN" >> $GITHUB_OUTPUT
+          
+          # Extract major.minor (e.g., 2.10.2 -> 2.10)
+          VERSION_MINOR=$(echo $VERSION_CLEAN | cut -d. -f1-2)
+          echo "version_minor=$VERSION_MINOR" >> $GITHUB_OUTPUT
+          
+          # Extract major (e.g., 2.10.2 -> 2)
+          VERSION_MAJOR=$(echo $VERSION_CLEAN | cut -d. -f1)
+          echo "version_major=$VERSION_MAJOR" >> $GITHUB_OUTPUT
+
+      - name: Generate Docker tags
+        id: tags
+        run: |
+          TAGS="${{ env.IMAGE_NAME }}:latest"
+          TAGS="$TAGS,${{ env.IMAGE_NAME }}:${{ steps.caddy_version.outputs.version_clean }}"
+          TAGS="$TAGS,${{ env.IMAGE_NAME }}:${{ steps.caddy_version.outputs.version_minor }}"
+          TAGS="$TAGS,${{ env.IMAGE_NAME }}:${{ steps.caddy_version.outputs.version_major }}"
+          
+          # Add date tag for scheduled builds
+          if [ "${{ github.event_name }}" == "schedule" ]; then
+            TAGS="$TAGS,${{ env.IMAGE_NAME }}:$(date +%Y%m%d)"
+          fi
+          
+          # Add semver tags for git tags
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            GIT_TAG="${GITHUB_REF#refs/tags/v}"
+            TAGS="$TAGS,${{ env.IMAGE_NAME }}:$GIT_TAG"
+          fi
+          
+          echo "tags=$TAGS" >> $GITHUB_OUTPUT
+          echo "Generated tags: $TAGS"
+
+      - name: Build and push Docker image with version tags
         uses: docker/build-push-action@v5
         with:
           context: .
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.tags.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
