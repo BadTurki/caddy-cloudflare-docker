@@ -42,7 +42,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
@@ -79,6 +79,6 @@ jobs:
         if: github.event_name != 'pull_request'
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           repository: ${{ env.IMAGE_NAME }}
           readme-filepath: ./README.md
