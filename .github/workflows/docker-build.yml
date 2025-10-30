@@ -15,8 +15,8 @@ on:
   workflow_dispatch: # Allow manual triggers
 
 env:
-  DOCKER_HUB_USERNAME: your-dockerhub-username
-  IMAGE_NAME: your-dockerhub-username/caddy-cloudflare
+  DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+  IMAGE_NAME: ${{ secrets.DOCKER_HUB_USERNAME }}/caddy-cloudflare
 
 jobs:
   build-and-push:
