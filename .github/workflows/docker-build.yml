@@ -6,9 +6,15 @@ on:
       - main
     tags:
       - 'v*'
+    paths-ignore:
+      - 'README.md'
+      - 'LICENSE'
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - 'README.md'
+      - 'LICENSE'
   schedule:
     # Run weekly on Mondays at 2 AM UTC to get latest Caddy updates
     - cron: '0 2 * * 1'
