@@ -15,7 +15,7 @@ Automated builds of Caddy with the Cloudflare DNS plugin for DNS-01 ACME challen
 ```yaml
 services:
   caddy:
-    image: badturki/caddy-cloudflare:latest
+    image: badturki/caddy-cloudflare:2.10.2
     container_name: caddy
     restart: unless-stopped
     ports:
