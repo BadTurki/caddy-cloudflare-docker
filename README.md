@@ -31,13 +31,14 @@ services:
       - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
 ```
 
-**Volume Configuration:**
+**Configuration Variables:**
+
+Create a `.env` file in the same directory as your `docker-compose.yml`:
+
 - `CADDY_DATA_DIR`: Base directory for Caddy data (e.g., `/mnt/user/appdata/caddy` or `./caddy`)
   - Place your `Caddyfile` in `${CADDY_DATA_DIR}/caddy/Caddyfile`
   - Certificates and cache stored in `${CADDY_DATA_DIR}/data`
   - Additional config in `${CADDY_DATA_DIR}/config`
-
-**Environment Variables:**
 - `TZ`: (Optional) Set timezone for container logs and timestamps. Defaults to UTC if not set.
 - `CLOUDFLARE_API_TOKEN`: (Required only for Cloudflare DNS challenges) Your Cloudflare API token with DNS edit permissions. Only needed if using `dns cloudflare` in your Caddyfile.
 
